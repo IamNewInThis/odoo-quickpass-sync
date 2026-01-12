@@ -96,13 +96,13 @@ func (s *EmployeeService) GetAllEmployees() ([]*HrEmployee, error) {
 						"name",
 						"country_id",
 						"work_email",
-						"private_email",
+						// "private_email",  // Puede no existir en todas las instalaciones
 						"work_phone",
-						"private_phone",
-						"private_street",
-						"private_city",
-						"private_state_id",
-						"hr_commune",
+						// "private_phone",  // Puede no existir en todas las instalaciones
+						// "private_street", // Puede no existir en todas las instalaciones
+						// "private_city",   // Puede no existir en todas las instalaciones
+						// "private_state_id", // Puede no existir en todas las instalaciones
+						// "hr_commune",     // Campo personalizado, no existe en Odoo estándar
 						"image_1920",
 						"birthday",
 						"gender",
@@ -173,13 +173,13 @@ func (s *EmployeeService) GetEmployeeByID(employeeID int) (*HrEmployee, error) {
 						"name",
 						"country_id",
 						"work_email",
-						"private_email",
+						// "private_email",  // Puede no existir
 						"work_phone",
-						"private_phone",
-						"private_street",
-						"private_city",
-						"private_state_id",
-						"hr_commune",
+						// "private_phone",  // Puede no existir
+						// "private_street", // Puede no existir
+						// "private_city",   // Puede no existir
+						// "private_state_id", // Puede no existir
+						// "hr_commune",     // Campo personalizado
 						"image_1920",
 						"birthday",
 						"gender",
