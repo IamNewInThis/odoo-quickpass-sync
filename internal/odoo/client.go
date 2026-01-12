@@ -40,6 +40,15 @@ func NewClient(config *Config) *Client {
 	}
 }
 
+// GetAuthPassword devuelve la contraseña o API Key para autenticación
+// Con API Key, Odoo requiere usar la API Key como "password" en las llamadas
+func (c *Client) GetAuthPassword() string {
+	if c.APIKey != "" {
+		return c.APIKey
+	}
+	return c.Password
+}
+
 // jsonRPCRequest representa una petición JSON-RPC a Odoo
 type jsonRPCRequest struct {
 	JSONRPC string                 `json:"jsonrpc"`
@@ -70,10 +79,35 @@ func (c *Client) Authenticate() error {
 	// Si tenemos API Key, usarla directamente (método preferido)
 	if c.APIKey != "" {
 		fmt.Println("🔐 Usando autenticación con API Key")
-		// Con API Key no necesitamos hacer authenticate, solo usamos la key en los headers
-		// Establecemos un UID dummy ya que con API Key no se usa
-		c.UID = 1
-		fmt.Printf("✅ Autenticado con API Key (Cliente: %s)\n", c.ClientName)
+		// Con API Key, debemos hacer authenticate usando el username y API Key como password
+		payload := jsonRPCRequest{
+			JSONRPC: "2.0",
+			Method:  "call",
+			Params: map[string]interface{}{
+				"service": "common",
+				"method":  "authenticate",
+				"args":    []interface{}{c.Database, c.Username, c.APIKey, map[string]interface{}{}},
+			},
+			ID: 1,
+		}
+
+		response, err := c.doRequest(payload)
+		if err != nil {
+			return fmt.Errorf("error en la petición de autenticación con API Key: %w", err)
+		}
+
+		if response.Error != nil {
+			return fmt.Errorf("error de autenticación con API Key: %s - Verifica que la API Key sea válida", response.Error.Message)
+		}
+
+		// El resultado debe ser un número (UID)
+		uid, ok := response.Result.(float64)
+		if !ok || uid == 0 {
+			return fmt.Errorf("API Key inválida o respuesta inesperada")
+		}
+
+		c.UID = int(uid)
+		fmt.Printf("✅ Autenticado con API Key. UID: %d (Cliente: %s)\n", c.UID, c.ClientName)
 		return nil
 	}
 
@@ -124,11 +158,6 @@ func (c *Client) doRequest(payload jsonRPCRequest) (*jsonRPCResponse, error) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-
-	// Si tenemos API Key, agregarla en los headers
-	if c.APIKey != "" {
-		req.Header.Set("api-key", c.APIKey)
-	}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {

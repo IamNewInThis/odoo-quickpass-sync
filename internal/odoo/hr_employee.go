@@ -83,7 +83,7 @@ func (s *EmployeeService) GetAllEmployees() ([]*HrEmployee, error) {
 			"args": []interface{}{
 				s.client.Database,
 				s.client.UID,
-				s.client.Password,
+				s.client.GetAuthPassword(), // Usa API Key si está disponible
 				"hr.employee",
 				"search_read",
 				[]interface{}{
@@ -162,7 +162,7 @@ func (s *EmployeeService) GetEmployeeByID(employeeID int) (*HrEmployee, error) {
 			"args": []interface{}{
 				s.client.Database,
 				s.client.UID,
-				s.client.Password,
+				s.client.GetAuthPassword(), // Usa API Key si está disponible
 				"hr.employee",
 				"read",
 				[]interface{}{[]int{employeeID}},
